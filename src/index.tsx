@@ -6,9 +6,9 @@ import { worker } from '@/mocks/worker'
 
 import '@/styles/index.css'
 
-if (process.env.NODE_ENV === 'development') {
-  worker.start()
-}
+// if (process.env.NODE_ENV === 'development') {
+worker.start()
+// }
 
 const root = createRoot(document.getElementById('root') as HTMLElement)
 root.render(
