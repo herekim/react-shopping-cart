@@ -1,34 +1,40 @@
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
-import { API } from '@/config'
-import { useFetch, useMutation, useProductInfo } from '@/hooks'
-import { ProductSchema, ProductSchemaInfer } from '@/schemas'
+import { useProductInfo } from '@/hooks'
+import { addCartItem } from '@/stores/features/cart/cartSlice'
+import { getProduct } from '@/stores/features/product/productSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 import { Product } from '@/types'
 
 const useProductDetail = () => {
+  const dispatch = useDispatch<AppDispatch>()
+  const product = useSelector((state: RootState) => state.product.product)
+
   const navigate = useNavigate()
   const { getProductId } = useProductInfo()
 
-  const {
-    payload: productDetail,
-    isLoading,
-    error,
-  } = useFetch<ProductSchemaInfer>(API.PRODUCT(getProductId()), {
-    enabled: typeof getProductId() === 'number',
-    schema: ProductSchema,
-  })
-  const productDetailMutation = useMutation(API.CARTS, 'POST')
+  useEffect(() => {
+    if (typeof getProductId() === 'number') {
+      dispatch(getProduct(getProductId()))
+    }
+  }, [dispatch, getProductId])
 
   const goToCartPage = () => {
     navigate('/cart')
   }
 
   const handleCartButtonClick = async (cart: Product) => {
-    await productDetailMutation.mutate({ cart: { ...cart } })
+    await dispatch(addCartItem({ cart: { ...cart } }))
     goToCartPage()
   }
 
-  return { productDetail, handleCartButtonClick, isLoading, error }
+  return {
+    product,
+    handleCartButtonClick,
+    // isLoading, error
+  }
 }
 
 export default useProductDetail

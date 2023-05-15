@@ -1,8 +1,11 @@
+import { useDispatch, useSelector } from 'react-redux'
+
 import { ReactComponent as Trash } from '@/assets/trash.svg'
 import { DeleteModal } from '@/components/modals'
-import { API } from '@/config'
-import { useModal, useMutation } from '@/hooks'
+import { useModal } from '@/hooks'
 import { ProductSchemaWithCheckedAndQuantityInfer } from '@/schemas'
+import { deleteCartItem as deleteCart } from '@/stores/features/cart/cartSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 
 interface ItemProps {
   item: ProductSchemaWithCheckedAndQuantityInfer
@@ -14,14 +17,20 @@ interface ItemProps {
 const CartItem = ({ item, handleQuantityChange, handleCheckedChange, updateCartList }: ItemProps) => {
   const { openModal, closeModal } = useModal()
 
-  const cartItemDeleteMutation = useMutation(`${API.CARTS}/${item.id}`, 'DELETE')
+  const dispatch = useDispatch<AppDispatch>()
+
+  useSelector((state: RootState) => state.cart)
 
   const deleteCartItem = async () => {
-    await cartItemDeleteMutation.mutate()
+    try {
+      await dispatch(deleteCart(item.id))
 
-    updateCartList(item.id)
+      updateCartList(item.id)
 
-    closeModal({ element: DeleteModal })
+      closeModal({ element: DeleteModal })
+    } catch (error) {
+      console.error('Failed to delete cart item:', error)
+    }
   }
 
   const openDeleteModal = (product: ProductSchemaWithCheckedAndQuantityInfer) => {

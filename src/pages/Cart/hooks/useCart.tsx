@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { z } from 'zod'
 
 import { DeleteModal, CheckModal } from '@/components/modals'
-import { API } from '@/config'
-import { useModal, useMutation, useFetch } from '@/hooks'
-import { ProductSchema, ProductSchemaInfer, ProductSchemaWithCheckedAndQuantityInfer } from '@/schemas'
+import { useModal } from '@/hooks'
+import { ProductSchemaWithCheckedAndQuantityInfer } from '@/schemas'
+import { getCartItems, deleteCartItems } from '@/stores/features/cart/cartSlice'
+import { createOrder } from '@/stores/features/order/orderSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 
 const useCart = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
-  const { payload, isLoading, error } = useFetch<ProductSchemaInfer[]>(API.CARTS, {
-    schema: z.array(ProductSchema),
-  })
+
+  const cartItems = useSelector((state: RootState) => state.cart.items)
+
+  useEffect(() => {
+    dispatch(getCartItems())
+  }, [dispatch])
 
   const [cartList, setCartList] = useState<ProductSchemaWithCheckedAndQuantityInfer[]>([])
-
-  const deleteCartMutation = useMutation(`${API.CARTS}`, 'DELETE')
-  const createOrdersMutation = useMutation(`${API.ORDERS}`, 'POST')
 
   const { openModal, closeModal } = useModal()
 
@@ -28,7 +31,7 @@ const useCart = () => {
       return
     }
 
-    await deleteCartMutation.mutate({ ids: selectedCartItemIds })
+    await dispatch(deleteCartItems(selectedCartItemIds))
 
     const unCheckedCartList = cartList.filter((item) => !item.checked)
     setCartList(unCheckedCartList)
@@ -48,12 +51,12 @@ const useCart = () => {
   }
 
   useEffect(() => {
-    if (payload) {
-      const newPayload = payload.map((product) => ({ ...product, checked: true, quantity: 1 }))
+    if (cartItems) {
+      const newPayload = cartItems.map((cartItems) => ({ ...cartItems, checked: true, quantity: 1 }))
 
       setCartList(newPayload)
     }
-  }, [payload])
+  }, [cartItems])
 
   const handleQuantityChange = (id: number, quantity: number) => {
     setCartList((prev) =>
@@ -107,8 +110,8 @@ const useCart = () => {
   const unCheckedCartList = cartList.filter((item) => !item.checked)
 
   const updateCartListAfterOrder = async () => {
-    await deleteCartMutation.mutate({ ids: checkedCartIds })
-    await createOrdersMutation.mutate({ orderList: checkedCartList })
+    await dispatch(deleteCartItems(checkedCartIds))
+    await dispatch(createOrder({ orderList: checkedCartList }))
 
     setCartList(unCheckedCartList)
     closeModal({ element: DeleteModal })
@@ -131,8 +134,8 @@ const useCart = () => {
 
   return {
     cartList,
-    isLoading,
-    error,
+    // isLoading,
+    // error,
     handleQuantityChange,
     handleCheckedChange,
     handleAllCheckedChange,

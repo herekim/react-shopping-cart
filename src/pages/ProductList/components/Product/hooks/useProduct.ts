@@ -1,14 +1,16 @@
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
-import { API } from '@/config'
-import { useMutation } from '@/hooks'
+import { addCartItem } from '@/stores/features/cart/cartSlice'
+import { AppDispatch } from '@/stores/store'
 import { Product } from '@/types'
 
 const useProduct = () => {
+  const dispatch = useDispatch<AppDispatch>()
+
   const navigate = useNavigate()
-  const cartMutation = useMutation(API.CARTS, 'POST')
   const handleCartButtonClick = async (cart: Product) => {
-    await cartMutation.mutate({ cart: { ...cart } })
+    await dispatch(addCartItem({ cart: { ...cart } }))
     alert('장바구니에 추가되었습니다!')
   }
   const goToProductDetail = (id: number) => {

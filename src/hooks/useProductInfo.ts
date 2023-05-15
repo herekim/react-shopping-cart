@@ -1,9 +1,10 @@
+import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 
 const useProductInfo = () => {
   const { id } = useParams()
 
-  const getProductId = () => {
+  const getProductId = useCallback(() => {
     if (id === '0') {
       return Number(id)
     }
@@ -14,7 +15,7 @@ const useProductInfo = () => {
       return Number(sessionStorage.getItem('productId'))
     }
     return null
-  }
+  }, [id])
 
   return { getProductId }
 }

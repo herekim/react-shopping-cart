@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { API } from '@/config'
-import { useFetch } from '@/hooks'
-import { ProductListSchemaInfer, ProductListSchema } from '@/schemas'
+import { getProducts } from '@/stores/features/product/productSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 
 type NumericString = keyof Record<string, number>
 
 const useProductList = () => {
+  const dispatch = useDispatch<AppDispatch>()
+  const products = useSelector((state: RootState) => state.product.products)
+
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const pageParam = searchParams.get('page')
@@ -16,6 +19,10 @@ const useProductList = () => {
 
   const [page, setPage] = useState(pageParam || '1')
   const [perPage, setPerPage] = useState(perPageParam || '12')
+
+  useEffect(() => {
+    dispatch(getProducts({ page, perPage }))
+  }, [dispatch, page, perPage])
 
   useEffect(() => {
     if (pageParam) {
@@ -35,19 +42,17 @@ const useProductList = () => {
     navigate(`?page=${page}&perPage=${newPerPage}`)
   }
 
-  const {
-    payload: productListPayload,
-    isLoading,
-    error,
-  } = useFetch<ProductListSchemaInfer>(`${API.PRODUCTS}?page=${page}&perPage=${perPage}`, {
-    schema: ProductListSchema,
-  })
-
-  const pageArray = new Array(productListPayload?.totalPage)
+  const pageArray = new Array(products?.totalPage)
     .fill(null)
     .map((_, index) => ({ page: index + 1, isSelectedPage: Number(page) === index + 1 }))
 
-  return { productListPayload, isLoading, error, changePage, changePerPage, pageArray }
+  return {
+    products,
+    // isLoading, error,
+    changePage,
+    changePerPage,
+    pageArray,
+  }
 }
 
 export default useProductList

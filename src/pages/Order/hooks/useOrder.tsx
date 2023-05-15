@@ -1,37 +1,36 @@
 import { usePayssion } from 'payssion'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import uuid from 'react-uuid'
-import { z } from 'zod'
 
 import { CheckModal } from '@/components'
-import { API } from '@/config'
-import { useFetch, useModal, useMutation } from '@/hooks'
-import { OrderSchema, OrderSchemaInfer } from '@/schemas'
+// import { API } from '@/config'
+import { useModal } from '@/hooks'
+import { getOrder, createOrderList, deleteAllOrder } from '@/stores/features/order/orderSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 
 const useOrder = () => {
   const navigate = useNavigate()
   const { openModal, closeModal } = useModal()
   const { initiatePayment } = usePayssion()
+  const dispatch = useDispatch<AppDispatch>()
+  const orders = useSelector((state: RootState) => state.order.order)
 
-  const {
-    payload: orders,
-    isLoading,
-    error,
-  } = useFetch<OrderSchemaInfer[]>(API.ORDERS, {
-    schema: z.array(OrderSchema),
-  })
-  const createOrderListMutation = useMutation(`${API.ORDER_LIST}`, 'POST')
-
-  const deleteAllOrdersMutation = useMutation(`${API.ORDERS}`, 'DELETE')
+  useEffect(() => {
+    dispatch(getOrder())
+  }, [dispatch])
 
   const onSuccessAction = async () => {
-    await createOrderListMutation.mutate({
-      orderListItem: {
-        orderListId: uuid(),
-        orders,
-      },
-    })
-    await deleteAllOrdersMutation.mutate()
+    await dispatch(
+      createOrderList({
+        orderListItem: {
+          orderListId: uuid(),
+          orders,
+        },
+      }),
+    )
+    await dispatch(deleteAllOrder())
     navigate('/order-list')
   }
 
@@ -56,7 +55,13 @@ const useOrder = () => {
     return acc + cur.quantity
   }, 0)
 
-  return { orders, isLoading, error, totalOrderPrice, totalOrderQuantity, openPaymentCheckModal }
+  return {
+    orders,
+    // isLoading, error,
+    totalOrderPrice,
+    totalOrderQuantity,
+    openPaymentCheckModal,
+  }
 }
 
 export default useOrder

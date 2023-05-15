@@ -1,13 +1,17 @@
-import { z } from 'zod'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
-import { API } from '@/config'
-import { useFetch } from '@/hooks'
-import { OrderListSchemaInfer, OrderListSchema } from '@/schemas'
+import { getOrders } from '@/stores/features/order/orderSlice'
+import { RootState, AppDispatch } from '@/stores/store'
 
 const useOrderList = () => {
-  const { payload: orderList } = useFetch<OrderListSchemaInfer[]>(API.ORDER_LIST, {
-    schema: z.array(OrderListSchema),
-  })
+  const dispatch = useDispatch<AppDispatch>()
+  const orderList = useSelector((state: RootState) => state.order.orders)
+
+  useEffect(() => {
+    dispatch(getOrders())
+  }, [dispatch])
+
   return { orderList }
 }
 

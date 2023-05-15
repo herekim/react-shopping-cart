@@ -1,27 +1,32 @@
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 import { CheckModal } from '@/components'
-import { API } from '@/config'
-import { useModal, useMutation } from '@/hooks'
+import { useModal } from '@/hooks'
+import { addCartItem } from '@/stores/features/cart/cartSlice'
+import { AppDispatch } from '@/stores/store'
 import { Order } from '@/types'
 interface OrderListItemProps {
   orderItem: Order
 }
 
 const useOrderListItem = ({ orderItem }: OrderListItemProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+
   const navigate = useNavigate()
   const { openModal, closeModal } = useModal()
-  const createCartMutation = useMutation(API.CARTS, 'POST')
 
   const handleConfirmButtonClick = async () => {
-    await createCartMutation.mutate({
-      cart: {
-        id: orderItem.id,
-        name: orderItem.name,
-        price: orderItem.price,
-        imageUrl: orderItem.imageUrl,
-      },
-    })
+    dispatch(
+      addCartItem({
+        cart: {
+          id: orderItem.id,
+          name: orderItem.name,
+          price: orderItem.price,
+          imageUrl: orderItem.imageUrl,
+        },
+      }),
+    )
 
     closeModal({ element: CheckModal })
     navigate('/cart')
