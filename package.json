@@ -66,5 +66,10 @@
   },
   "msw": {
     "workerDirectory": "public"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
   }
 }

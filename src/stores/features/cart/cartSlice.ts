@@ -5,7 +5,7 @@ import { API } from '@/config'
 import { asyncRequest } from '@/domains'
 import { ProductSchema, ProductSchemaInfer } from '@/schemas'
 
-interface CartState {
+export interface CartState {
   items: ProductSchemaInfer[]
   status: 'idle' | 'loading' | 'succeeded' | 'failed'
   error: string | null
@@ -17,7 +17,6 @@ const initialState: CartState = {
   error: null,
 }
 
-// 비동기 thunk 정의
 export const getCartItems = createAsyncThunk('cart/getCartItems', async () => {
   const response = await asyncRequest(API.CARTS)
   const json = await response.json()
@@ -31,7 +30,7 @@ export const getCartItems = createAsyncThunk('cart/getCartItems', async () => {
   return json
 })
 
-interface AddCartItemPayload {
+export interface AddCartItemPayload {
   cart: ProductSchemaInfer
 }
 
@@ -109,10 +108,7 @@ export const deleteCartItems = createAsyncThunk('cart/deleteCartItems', async (i
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
-  reducers: {
-    // 여기에 리듀서를 정의하세요.
-  },
-  // 필요한 경우 extraReducers를 사용할 수도 있습니다.
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(getCartItems.pending, (state) => {
@@ -120,7 +116,6 @@ const cartSlice = createSlice({
       })
       .addCase(getCartItems.fulfilled, (state, action) => {
         state.status = 'succeeded'
-        // 상태를 직접 변경하는 것처럼 배열을 덮어씁니다.
         state.items = action.payload
       })
       .addCase(getCartItems.rejected, (state, action) => {
@@ -157,5 +152,4 @@ const cartSlice = createSlice({
 })
 
 export const { actions } = cartSlice
-
 export default cartSlice.reducer

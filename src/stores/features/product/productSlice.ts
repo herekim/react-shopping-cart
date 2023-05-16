@@ -52,9 +52,7 @@ export const getProducts = createAsyncThunk('product/getProducts', async ({ page
 const productSlice = createSlice({
   name: 'product',
   initialState,
-  reducers: {
-    // 여기에 리듀서를 정의하세요.
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(getProduct.pending, (state) => {

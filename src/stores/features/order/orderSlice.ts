@@ -105,9 +105,7 @@ export const deleteAllOrder = createAsyncThunk('order/deleteAllOrder', async () 
 const orderSlice = createSlice({
   name: 'order',
   initialState,
-  reducers: {
-    // 여기에 리듀서를 정의하세요.
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(getOrder.pending, (state) => {
