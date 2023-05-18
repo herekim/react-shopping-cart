@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { getOrders } from '@/stores/features/order/orderSlice'
+import { getPaymentList } from '@/stores/features/paymentList/paymentListSlice'
 import { RootState, AppDispatch } from '@/stores/store'
 
 const useOrderList = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const orderList = useSelector((state: RootState) => state.order.orders)
+  const paymentList = useSelector((state: RootState) => state.paymentList.paymentList)
 
   useEffect(() => {
-    dispatch(getOrders())
+    dispatch(getPaymentList())
   }, [dispatch])
 
-  return { orderList }
+  return { paymentList }
 }
 
 export default useOrderList

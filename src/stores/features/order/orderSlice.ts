@@ -3,20 +3,22 @@ import { z } from 'zod'
 
 import { API } from '@/config'
 import { asyncRequest } from '@/domains'
-import { OrderSchema, OrderListSchema, OrderSchemaInfer, OrderListSchemaInfer } from '@/schemas'
+import { OrderSchema, OrderSchemaInfer } from '@/schemas'
 
-interface OrderState {
+export interface OrderState {
   order: OrderSchemaInfer[]
-  orders: OrderListSchemaInfer[]
   status: 'idle' | 'loading' | 'succeeded' | 'failed'
   error: string | null
 }
 
 const initialState: OrderState = {
   order: [],
-  orders: [],
   status: 'idle',
   error: null,
+}
+
+interface AddOrderPayload {
+  order: OrderSchemaInfer[]
 }
 
 export const getOrder = createAsyncThunk('order/getOrder', async () => {
@@ -31,23 +33,6 @@ export const getOrder = createAsyncThunk('order/getOrder', async () => {
 
   return json
 })
-
-export const getOrders = createAsyncThunk('order/getOrders', async () => {
-  const response = await asyncRequest(API.ORDER_LIST)
-  const json = await response.json()
-
-  try {
-    z.array(OrderListSchema).parse(json)
-  } catch (error) {
-    throw error
-  }
-
-  return json
-})
-
-interface AddOrderPayload {
-  orderList: OrderSchemaInfer[]
-}
 
 export const createOrder = createAsyncThunk('order/createOrder', async (orders: AddOrderPayload) => {
   const response = await fetch(`${API.ORDERS}`, {
@@ -80,22 +65,6 @@ export const updateOrder = createAsyncThunk('order/updateOrder', async (order: O
   return data
 })
 
-interface AddOrderListPayload {
-  orderListItem: OrderListSchemaInfer
-}
-
-export const createOrderList = createAsyncThunk('order/createOrderList', async (orderList: AddOrderListPayload) => {
-  const response = await fetch(`${API.ORDER_LIST}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(orderList),
-  })
-  const data = await response.json()
-  return data
-})
-
 export const deleteAllOrder = createAsyncThunk('order/deleteAllOrder', async () => {
   await fetch(`${API.ORDERS}`, {
     method: 'DELETE',
@@ -119,32 +88,50 @@ const orderSlice = createSlice({
         state.status = 'failed'
         state.error = action.error.message || null
       })
-      .addCase(getOrders.pending, (state) => {
+      .addCase(createOrder.pending, (state) => {
         state.status = 'loading'
       })
-      .addCase(getOrders.fulfilled, (state, action) => {
+      .addCase(createOrder.fulfilled, (state, action) => {
         state.status = 'succeeded'
-        state.orders = action.payload
+        state.order = [...state.order, action.payload]
       })
-      .addCase(getOrders.rejected, (state, action) => {
+      .addCase(createOrder.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message || null
       })
-      .addCase(createOrder.fulfilled, (state, action) => {
-        state.order = [...state.order, action.payload]
+      .addCase(deleteOrder.pending, (state) => {
+        state.status = 'loading'
       })
       .addCase(deleteOrder.fulfilled, (state, action) => {
+        state.status = 'succeeded'
         state.order = state.order.filter((order) => order.id !== action.payload)
       })
+      .addCase(deleteOrder.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
+      })
+      .addCase(updateOrder.pending, (state) => {
+        state.status = 'loading'
+      })
       .addCase(updateOrder.fulfilled, (state, action) => {
+        state.status = 'succeeded'
         const index = state.order.findIndex((order) => order.id === action.payload.id)
         state.order[index] = action.payload
       })
-      .addCase(createOrderList.fulfilled, (state, action) => {
-        state.orders = [...state.orders, action.payload]
+      .addCase(updateOrder.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
+      })
+      .addCase(deleteAllOrder.pending, (state) => {
+        state.status = 'loading'
       })
       .addCase(deleteAllOrder.fulfilled, (state) => {
-        state.orders = []
+        state.status = 'succeeded'
+        state.order = []
+      })
+      .addCase(deleteAllOrder.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
       })
   },
 })

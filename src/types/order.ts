@@ -6,7 +6,7 @@ export interface Order {
   quantity: number
 }
 
-export interface OrderList {
-  orderListId: string
-  orders: Order[]
+export interface PaymentList {
+  id: string
+  paymentList: Order[]
 }

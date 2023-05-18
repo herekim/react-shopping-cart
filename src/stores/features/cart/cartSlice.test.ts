@@ -1,49 +1,133 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit'
+import { setupServer } from 'msw/node'
+
+import { products, resetCart } from '@/mocks/data'
+import { handlers } from '@/mocks/handlers'
 
 import cartReducer, { getCartItems, addCartItem, deleteCartItem, deleteCartItems, CartState } from './cartSlice'
 
-describe('cart reducer', () => {
+describe('카트의 리듀서 테스트', () => {
   let store: EnhancedStore<CartState>
+
   beforeEach(() => {
     store = configureStore({ reducer: cartReducer })
   })
 
-  const product1 = { id: 1, name: 'Test Product', price: 1000, imageUrl: 'test-url' }
-  const product2 = { id: 2, name: 'Test Product2', price: 2000, imageUrl: 'test-url2' }
-  const product3 = { id: 3, name: 'Test Product3', price: 3000, imageUrl: 'test-url3' }
-
-  it('should handle initial state', () => {
-    expect(store.getState()).toEqual({
-      items: [],
-      status: 'idle',
-      error: null,
-    })
+  it('장바구니 제품들을 가져오기가 fulfilled 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/getCartItems/fulfilled', payload: products })
+    expect(store.getState().status).toEqual('succeeded')
+    expect(store.getState().items).toEqual(products)
   })
 
-  it('should handle getCartItems', () => {
-    store.dispatch(getCartItems.fulfilled(product1, '', undefined))
-    expect(store.getState()).toEqual({
-      items: product1,
-      status: 'succeeded',
-      error: null,
-    })
+  it('장바구니 제품들 가져오기가 pending 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/getCartItems/pending' })
+    expect(store.getState().status).toEqual('loading')
   })
 
-  it('should handle addCartItem', () => {
-    store.dispatch({ type: addCartItem.fulfilled, payload: { cart: product2 } })
-    expect(store.getState().items).toContainEqual({ cart: product2 })
+  it('장바구니 제품들 가져오기가 rejected 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/getCartItems/rejected', error: { message: 'Test error' } })
+    expect(store.getState().status).toEqual('failed')
+    expect(store.getState().error).toEqual('Test error')
   })
 
-  it('should handle deleteCartItem', () => {
-    store.dispatch({ type: addCartItem.fulfilled, payload: [product2] })
-    store.dispatch({ type: deleteCartItem.fulfilled, payload: product2.id })
-    expect(store.getState().items).not.toContainEqual(product2)
+  it('장바구니에 제품 추가가 fulfilled 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/addCartItem/fulfilled', payload: { cart: products[0] } })
+    expect(store.getState().items).toContainEqual({ cart: products[0] })
   })
 
-  it('should handle deleteCartItems', () => {
-    store.dispatch({ type: addCartItem.fulfilled, payload: product2 })
-    store.dispatch({ type: addCartItem.fulfilled, payload: product3 })
-    store.dispatch({ type: deleteCartItems.fulfilled, payload: [product2.id, product3.id] })
+  it('장바구니에 제품 추가가 pending 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/addCartItem/pending' })
+    expect(store.getState().status).toEqual('loading')
+  })
+
+  it('장바구니에 제품 추가가 rejected 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/addCartItem/rejected', error: { message: 'Test error' } })
+    expect(store.getState().status).toEqual('failed')
+    expect(store.getState().error).toEqual('Test error')
+  })
+
+  it('장바구니에 제품 삭제가 fulfilled 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/addCartItem/fulfilled', payload: [products[1]] })
+    store.dispatch({ type: 'cart/deleteCartItem/fulfilled', payload: products[1].id })
+    expect(store.getState().status).toEqual('succeeded')
+    expect(store.getState().items).not.toContainEqual(products[1])
+  })
+
+  it('장바구니에 제품 삭제가 pending 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/deleteCartItem/pending' })
+    expect(store.getState().status).toEqual('loading')
+  })
+
+  it('장바구니에 제품 삭제가 rejected 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/deleteCartItem/rejected', error: { message: 'Test error' } })
+    expect(store.getState().status).toEqual('failed')
+    expect(store.getState().error).toEqual('Test error')
+  })
+
+  it('장바구니에 제품 여러개 삭제가 fulfilled 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/addCartItem/fulfilled', payload: products[3] })
+    store.dispatch({ type: 'cart/addCartItem/fulfilled', payload: products[4] })
+    store.dispatch({ type: 'cart/deleteCartItems/fulfilled', payload: [products[3].id, products[4].id] })
     expect(store.getState().items).toEqual([])
+  })
+
+  it('장바구니에 제품 여러개 삭제가 pending 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/deleteCartItems/pending' })
+    expect(store.getState().status).toEqual('loading')
+  })
+
+  it('장바구니에 제품 여러개 삭제가 rejected 상태일 때 정상 동작 해야 한다', () => {
+    store.dispatch({ type: 'cart/deleteCartItems/rejected', error: { message: 'Test error' } })
+    expect(store.getState().status).toEqual('failed')
+    expect(store.getState().error).toEqual('Test error')
+  })
+})
+
+const server = setupServer(...handlers)
+
+beforeAll(() => server.listen())
+afterAll(() => server.close())
+beforeEach(() => resetCart())
+afterEach(async () => server.resetHandlers())
+
+describe('카트의 비동기 액션', () => {
+  const store = configureStore({ reducer: cartReducer })
+
+  it('카트에 제품을 추가할 수 있다', async () => {
+    await store.dispatch(addCartItem({ cart: products[0] }))
+    await store.dispatch(getCartItems())
+
+    const state = store.getState()
+
+    expect(state.status).toEqual('succeeded')
+    expect(state.items).toContainEqual(products[0])
+  })
+
+  it('카트에서 특정 제품만 삭제할 수 있다', async () => {
+    await store.dispatch(addCartItem({ cart: products[1] }))
+    await store.dispatch(addCartItem({ cart: products[2] }))
+    await store.dispatch(deleteCartItem(products[1].id))
+    await store.dispatch(getCartItems())
+
+    const state = store.getState()
+
+    expect(state.status).toEqual('succeeded')
+    expect(state.items).not.toContainEqual(products[1])
+    expect(state.items).toContainEqual(products[2])
+  })
+
+  it('카트에서 여러 제품을 삭제할 수 있다', async () => {
+    await store.dispatch(addCartItem({ cart: products[3] }))
+    await store.dispatch(addCartItem({ cart: products[4] }))
+    await store.dispatch(addCartItem({ cart: products[5] }))
+    await store.dispatch(deleteCartItems([products[3].id, products[5].id]))
+    await store.dispatch(getCartItems())
+
+    const state = store.getState()
+
+    expect(state.status).toEqual('succeeded')
+    expect(state.items).not.toContainEqual(products[3])
+    expect(state.items).not.toContainEqual(products[5])
+    expect(state.items).toContainEqual(products[4])
   })
 })

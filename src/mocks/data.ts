@@ -1,6 +1,6 @@
-import { Product, Order, OrderList } from '@/types'
+import { Product, Order, PaymentList } from '@/types'
 
-export const products: Product[] = [
+const initailProducts: Product[] = [
   {
     id: 0,
     imageUrl: 'https://product-image.kurly.com/product/image/4cac8738-675f-43dc-940b-acdbdda901a4.jpeg',
@@ -100,8 +100,19 @@ export const products: Product[] = [
   },
 ]
 
+export const products = [...initailProducts]
 export const carts: Product[] = []
-
 export const orders: Order[] = []
-
-export const orderList: OrderList[] = []
+export const paymentList: PaymentList[] = []
+export const resetProduct = () => {
+  initailProducts.splice(0, initailProducts.length)
+}
+export const resetCart = () => {
+  carts.splice(0, carts.length)
+}
+export const resetOrder = () => {
+  orders.splice(0, orders.length)
+}
+export const resetPaymentList = () => {
+  paymentList.splice(0, paymentList.length)
+}

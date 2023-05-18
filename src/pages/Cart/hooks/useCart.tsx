@@ -111,7 +111,7 @@ const useCart = () => {
 
   const updateCartListAfterOrder = async () => {
     await dispatch(deleteCartItems(checkedCartIds))
-    await dispatch(createOrder({ orderList: checkedCartList }))
+    await dispatch(createOrder({ order: checkedCartList }))
 
     setCartList(unCheckedCartList)
     closeModal({ element: DeleteModal })

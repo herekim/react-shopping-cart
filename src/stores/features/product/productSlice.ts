@@ -4,7 +4,7 @@ import { API } from '@/config'
 import { asyncRequest } from '@/domains'
 import { ProductSchema, ProductListSchema, ProductSchemaInfer, ProductListSchemaInfer } from '@/schemas'
 
-interface ProductState {
+export interface ProductState {
   product: ProductSchemaInfer | null
   products: ProductListSchemaInfer | null
   status: 'idle' | 'loading' | 'succeeded' | 'failed'
@@ -32,22 +32,25 @@ export const getProduct = createAsyncThunk('product/getProduct', async (productI
 })
 
 interface GetProductsParams {
-  page: string
-  perPage: string
+  page?: string
+  perPage?: string
 }
 
-export const getProducts = createAsyncThunk('product/getProducts', async ({ page, perPage }: GetProductsParams) => {
-  const response = await asyncRequest(`${API.PRODUCTS}?page=${page}&perPage=${perPage}`)
-  const json = await response.json()
+export const getProducts = createAsyncThunk(
+  'product/getProducts',
+  async ({ page = '1', perPage = '10' }: GetProductsParams) => {
+    const response = await asyncRequest(`${API.PRODUCTS}?page=${page}&perPage=${perPage}`)
+    const json = await response.json()
 
-  try {
-    ProductListSchema.parse(json)
-  } catch (error) {
-    throw error
-  }
+    try {
+      ProductListSchema.parse(json)
+    } catch (error) {
+      throw error
+    }
 
-  return json
-})
+    return json
+  },
+)
 
 const productSlice = createSlice({
   name: 'product',

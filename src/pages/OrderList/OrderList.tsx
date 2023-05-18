@@ -4,19 +4,15 @@ import { OrderListItemContainer } from '@/pages/OrderList/components'
 import { useOrderList } from './hooks'
 
 const OrderList = () => {
-  const { orderList } = useOrderList()
+  const { paymentList } = useOrderList()
 
   return (
     <section className="order-section">
       <SubHeader title="주문 목록" type="order" />
       <div className="order-list">
-        {orderList && orderList.length > 0 ? (
-          orderList.map((order) => (
-            <OrderListItemContainer
-              key={order.orderListId}
-              title={`주문번호: ${order.orderListId}`}
-              orders={order.orders}
-            />
+        {paymentList && paymentList.length > 0 ? (
+          paymentList.map((payment) => (
+            <OrderListItemContainer key={payment.id} title={`주문번호: ${payment.id}`} orders={payment.paymentList} />
           ))
         ) : (
           <div className="mt-40">주문 목록이 비어있습니다.</div>

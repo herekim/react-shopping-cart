@@ -2,14 +2,14 @@ import { rest, RestRequest } from 'msw'
 import z from 'zod'
 
 import { API } from '@/config'
-import { products, carts, orders, orderList } from '@/mocks/data'
+import { products, carts, orders, paymentList } from '@/mocks/data'
 import {
   ProductSchema,
   ProductSchemaInfer,
   OrderSchema,
   OrderSchemaInfer,
-  OrderListSchema,
-  OrderListSchemaInfer,
+  PaymentListSchema,
+  PaymentListSchemaInfer,
 } from '@/schemas'
 
 const getProduct = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
@@ -172,11 +172,17 @@ const deleteCartItems = (schema: z.ZodTypeAny) =>
     }
   })
 
+const resetAllCart = () =>
+  rest.delete(`${API.CARTS}/reset`, (_, res, ctx) => {
+    carts.splice(0, carts.length)
+    return res(ctx.status(200))
+  })
+
 const createOrders = (schema: z.ZodTypeAny) =>
-  rest.post(`${API.ORDERS}`, async (req: RestRequest<{ orderList: OrderSchemaInfer[] }>, res, ctx) => {
-    const { orderList } = await req.json()
+  rest.post(`${API.ORDERS}`, async (req: RestRequest<{ order: OrderSchemaInfer[] }>, res, ctx) => {
+    const { order } = await req.json()
     try {
-      const validatedOrders = orderList.map((order: OrderSchemaInfer) => schema.parse(order))
+      const validatedOrders = order.map((order: OrderSchemaInfer) => schema.parse(order))
       validatedOrders.forEach((order: OrderSchemaInfer) => orders.push(order))
 
       return res(ctx.status(201))
@@ -217,12 +223,13 @@ const deleteOrders = () =>
     }
   })
 
-const createOrderList = (schema: z.ZodTypeAny) =>
-  rest.post(`${API.ORDER_LIST}`, async (req: RestRequest<{ orderListItem: OrderListSchemaInfer }>, res, ctx) => {
-    const { orderListItem } = await req.json()
+const createPaymentList = (schema: z.ZodTypeAny) =>
+  rest.post(`${API.ORDER_LIST}`, async (req: RestRequest<{ paymentListItem: PaymentListSchemaInfer }>, res, ctx) => {
+    const { paymentListItem } = await req.json()
+
     try {
-      const validatedOrderListItem = schema.parse(orderListItem)
-      orderList.push(validatedOrderListItem)
+      const validatedPaymentListItem = schema.parse(paymentListItem)
+      paymentList.push(validatedPaymentListItem)
       return res(ctx.status(201))
     } catch (error) {
       if (error instanceof Error) {
@@ -233,11 +240,11 @@ const createOrderList = (schema: z.ZodTypeAny) =>
     }
   })
 
-const getOrderLists = (orderList: OrderListSchemaInfer[], schema: z.ZodTypeAny) =>
+const getPaymentList = (paymentList: PaymentListSchemaInfer[], schema: z.ZodTypeAny) =>
   rest.get(`${API.ORDER_LIST}`, (_: RestRequest, res, ctx) => {
     try {
-      const validatedOrderLists = orderList.map((orderList) => schema.parse(orderList))
-      return res(ctx.status(200), ctx.json(validatedOrderLists))
+      const validatedPaymentLists = paymentList.map((paymentList) => schema.parse(paymentList))
+      return res(ctx.status(200), ctx.json(validatedPaymentLists))
     } catch (error) {
       if (error instanceof Error) {
         return res(ctx.status(400), ctx.json({ message: error.message }))
@@ -258,7 +265,8 @@ export const handlers = [
   deleteCartItems(ProductSchema),
   getOrders(orders, OrderSchema),
   createOrders(OrderSchema),
-  createOrderList(OrderListSchema),
-  getOrderLists(orderList, OrderListSchema),
+  createPaymentList(PaymentListSchema),
+  getPaymentList(paymentList, PaymentListSchema),
   deleteOrders(),
+  resetAllCart(),
 ]

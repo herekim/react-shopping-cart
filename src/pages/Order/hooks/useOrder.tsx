@@ -7,7 +7,8 @@ import uuid from 'react-uuid'
 import { CheckModal } from '@/components'
 // import { API } from '@/config'
 import { useModal } from '@/hooks'
-import { getOrder, createOrderList, deleteAllOrder } from '@/stores/features/order/orderSlice'
+import { getOrder, deleteAllOrder } from '@/stores/features/order/orderSlice'
+import { createPaymentList } from '@/stores/features/paymentList/paymentListSlice'
 import { RootState, AppDispatch } from '@/stores/store'
 
 const useOrder = () => {
@@ -23,10 +24,10 @@ const useOrder = () => {
 
   const onSuccessAction = async () => {
     await dispatch(
-      createOrderList({
-        orderListItem: {
-          orderListId: uuid(),
-          orders,
+      createPaymentList({
+        paymentListItem: {
+          id: uuid(),
+          paymentList: orders,
         },
       }),
     )

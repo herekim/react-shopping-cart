@@ -105,6 +105,16 @@ export const deleteCartItems = createAsyncThunk('cart/deleteCartItems', async (i
   return ids
 })
 
+export const resetCart = createAsyncThunk('cart/resetCart', async () => {
+  const response = await fetch(`${API.CARTS}/reset`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to reset cart')
+  }
+})
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -122,10 +132,19 @@ const cartSlice = createSlice({
         state.status = 'failed'
         state.error = action.error.message || null
       })
+
+      .addCase(addCartItem.pending, (state) => {
+        state.status = 'loading'
+      })
       .addCase(addCartItem.fulfilled, (state, action) => {
         state.status = 'succeeded'
         state.items.push(action.payload)
       })
+      .addCase(addCartItem.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
+      })
+
       .addCase(updateCartItem.fulfilled, (state, action) => {
         state.status = 'succeeded'
         const index = state.items.findIndex((item) => item.id === action.payload.id)
@@ -137,6 +156,13 @@ const cartSlice = createSlice({
         state.status = 'succeeded'
         state.items = state.items.filter((item) => item.id !== action.payload)
       })
+      .addCase(deleteCartItem.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(deleteCartItem.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
+      })
       .addCase(deleteCartItems.pending, (state) => {
         state.status = 'loading'
       })
@@ -145,6 +171,17 @@ const cartSlice = createSlice({
         state.items = state.items.filter((item) => !action.payload.includes(item.id))
       })
       .addCase(deleteCartItems.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || null
+      })
+      .addCase(resetCart.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(resetCart.fulfilled, (state) => {
+        state.status = 'succeeded'
+        state.items = []
+      })
+      .addCase(resetCart.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message || null
       })
