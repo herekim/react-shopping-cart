@@ -18,16 +18,17 @@ const initialState: CartState = {
 }
 
 export const getCartItems = createAsyncThunk('cart/getCartItems', async () => {
-  const response = await asyncRequest(API.CARTS)
-  const json = await response.json()
-
   try {
+    const response = await asyncRequest(API.CARTS)
+    const json = await response.json()
     z.array(ProductSchema).parse(json)
+    return json
   } catch (error) {
-    throw error
+    if (error instanceof z.ZodError) {
+      throw new Error('Failed schema validation')
+    }
+    throw new Error('Failed to fetch data')
   }
-
-  return json
 })
 
 export interface AddCartItemPayload {

@@ -8,4 +8,12 @@ module.exports = {
       public: path.resolve(__dirname, 'public/'),
     },
   },
+  jest: {
+    configure: (jestConfig, {}) => {
+      jestConfig.collectCoverage = true
+      jestConfig.collectCoverageFrom = ['src/stores/**/*.{js,ts}', '!src/stores/store.ts']
+      jestConfig.coveragePathIgnorePatterns = []
+      return jestConfig
+    },
+  },
 }

@@ -1,6 +1,8 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit'
+import { rest, RestRequest } from 'msw'
 import { setupServer } from 'msw/node'
 
+import { API } from '@/config'
 import { products, resetCart } from '@/mocks/data'
 import { handlers } from '@/mocks/handlers'
 
@@ -101,6 +103,34 @@ describe('카트의 비동기 액션', () => {
 
     expect(state.status).toEqual('succeeded')
     expect(state.items).toContainEqual(products[0])
+  })
+
+  it('카트의 제품 가져오기가 실패하면 에러를 보여준다', async () => {
+    server.use(
+      rest.get(`${API.CARTS}`, (_: RestRequest, res, ctx) => {
+        return res(ctx.status(400))
+      }),
+    )
+    await store.dispatch(getCartItems())
+
+    const state = store.getState()
+
+    expect(state.status).toEqual('failed')
+    expect(state.error).toEqual('Failed to fetch data')
+  })
+
+  it('카트의 제품에서 스키마 유효성 검증을 실패하면 에러를 보여준다', async () => {
+    server.use(
+      rest.get(`${API.CARTS}`, (_: RestRequest, res, ctx) => {
+        return res(ctx.status(200), ctx.json({ id: 0 }))
+      }),
+    )
+    await store.dispatch(getCartItems())
+
+    const state = store.getState()
+
+    expect(state.status).toEqual('failed')
+    expect(state.error).toEqual('Failed schema validation')
   })
 
   it('카트에서 특정 제품만 삭제할 수 있다', async () => {

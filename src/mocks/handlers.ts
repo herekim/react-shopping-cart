@@ -12,7 +12,7 @@ import {
   PaymentListSchemaInfer,
 } from '@/schemas'
 
-const getProduct = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
+export const getProduct = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
   rest.get(`${API.PRODUCTS}/:id`, (req, res, ctx) => {
     const { id } = req.params
     const product = products.find((p) => p.id === Number(id))
@@ -33,7 +33,7 @@ const getProduct = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
     }
   })
 
-const getProducts = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
+export const getProducts = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
   rest.get(`${API.PRODUCTS}`, (req, res, ctx) => {
     const searchParams = new URLSearchParams(req.url.search)
     const page = searchParams.get('page') as string
@@ -55,7 +55,7 @@ const getProducts = (products: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
     }
   })
 
-const createProduct = (schema: z.ZodTypeAny) =>
+export const createProduct = (schema: z.ZodTypeAny) =>
   rest.post(`${API.PRODUCTS}`, async (req: RestRequest<{ product: ProductSchemaInfer }>, res, ctx) => {
     const { product } = await req.json()
     try {
@@ -71,7 +71,7 @@ const createProduct = (schema: z.ZodTypeAny) =>
     }
   })
 
-const createCart = (schema: z.ZodTypeAny) =>
+export const createCart = (schema: z.ZodTypeAny) =>
   rest.post(`${API.CARTS}`, async (req: RestRequest<{ cart: ProductSchemaInfer }>, res, ctx) => {
     const { cart } = await req.json()
     try {
@@ -87,21 +87,16 @@ const createCart = (schema: z.ZodTypeAny) =>
     }
   })
 
-const getCarts = (carts: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
+export const getCarts = (carts: ProductSchemaInfer[]) =>
   rest.get(`${API.CARTS}`, (_: RestRequest, res, ctx) => {
     try {
-      const validatedCarts = carts.map((cart) => schema.parse(cart))
-      return res(ctx.status(200), ctx.json(validatedCarts))
+      return res(ctx.status(200), ctx.json(carts))
     } catch (error) {
-      if (error instanceof Error) {
-        return res(ctx.status(400), ctx.json({ message: error.message }))
-      } else {
-        return res(ctx.status(400), ctx.json({ message: String(error) }))
-      }
+      return res(ctx.status(400), ctx.json({ message: String(error) }))
     }
   })
 
-const getCart = (carts: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
+export const getCart = (carts: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
   rest.get(`${API.CARTS}/:id`, async (req: RestRequest<{ product: ProductSchemaInfer }>, res, ctx) => {
     const { id } = req.params
     const cart = carts.find((p) => p.id === Number(id))
@@ -122,7 +117,7 @@ const getCart = (carts: ProductSchemaInfer[], schema: z.ZodTypeAny) =>
     }
   })
 
-const deleteCartItem = (schema: z.ZodTypeAny) =>
+export const deleteCartItem = (schema: z.ZodTypeAny) =>
   rest.delete(`${API.CARTS}/:id`, (req, res, ctx) => {
     const { id } = req.params
     const cartIndex = carts.findIndex((cart) => cart.id === Number(id))
@@ -146,7 +141,7 @@ const deleteCartItem = (schema: z.ZodTypeAny) =>
     }
   })
 
-const deleteCartItems = (schema: z.ZodTypeAny) =>
+export const deleteCartItems = (schema: z.ZodTypeAny) =>
   rest.delete(`${API.CARTS}`, async (req: RestRequest<{ ids: number[] }>, res, ctx) => {
     const { ids } = await req.json()
 
@@ -172,13 +167,13 @@ const deleteCartItems = (schema: z.ZodTypeAny) =>
     }
   })
 
-const resetAllCart = () =>
+export const resetAllCart = () =>
   rest.delete(`${API.CARTS}/reset`, (_, res, ctx) => {
     carts.splice(0, carts.length)
     return res(ctx.status(200))
   })
 
-const createOrders = (schema: z.ZodTypeAny) =>
+export const createOrders = (schema: z.ZodTypeAny) =>
   rest.post(`${API.ORDERS}`, async (req: RestRequest<{ order: OrderSchemaInfer[] }>, res, ctx) => {
     const { order } = await req.json()
     try {
@@ -209,7 +204,7 @@ const getOrders = (orders: OrderSchemaInfer[], schema: z.ZodTypeAny) =>
     }
   })
 
-const deleteOrders = () =>
+export const deleteOrders = () =>
   rest.delete(`${API.ORDERS}`, async (_, res, ctx) => {
     try {
       orders.splice(0, orders.length)
@@ -240,7 +235,7 @@ const createPaymentList = (schema: z.ZodTypeAny) =>
     }
   })
 
-const getPaymentList = (paymentList: PaymentListSchemaInfer[], schema: z.ZodTypeAny) =>
+export const getPaymentList = (paymentList: PaymentListSchemaInfer[], schema: z.ZodTypeAny) =>
   rest.get(`${API.ORDER_LIST}`, (_: RestRequest, res, ctx) => {
     try {
       const validatedPaymentLists = paymentList.map((paymentList) => schema.parse(paymentList))
@@ -259,7 +254,7 @@ export const handlers = [
   getProducts(products, ProductSchema),
   createProduct(ProductSchema),
   createCart(ProductSchema),
-  getCarts(carts, ProductSchema),
+  getCarts(carts),
   getCart(carts, ProductSchema),
   deleteCartItem(ProductSchema),
   deleteCartItems(ProductSchema),
