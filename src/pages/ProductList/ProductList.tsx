@@ -6,7 +6,7 @@ const ProductList = () => {
 
   return (
     <>
-      <a href="https://connecting.onelink.me/Og0z?af_js_web=true&af_ss_ver=2_7_3&pid=report&af_ss_ui=true">링크</a>
+      <a href="https://connecting.onelink.me/wLqS?af_js_web=true&af_ss_ver=2_7_3&pid=voice&af_ss_ui=true">링크</a>
       <section className="product-container">
         {products?.productList?.map((product) => (
           <Product key={product.id} product={product} />
