@@ -6,7 +6,11 @@ const ProductList = () => {
 
   return (
     <>
-      <a href="https://connecting.onelink.me/wLqS?af_js_web=true&af_ss_ver=2_7_3&pid=report&af_ss_ui=true&af_channel=https://hq1.appsflyer.com/">
+      <a
+        href="
+https://connecting.onelink.me/wLqS?af_js_web=true&af_ss_ver=2_7_3&pid=report&deep_link_value=reportAnalysis&af_ss_ui=true&af_channel=https://hq1.appsflyer.com/
+"
+      >
         링크 wLqS
       </a>
       <a href="https://connecting.onelink.me/Jd5O?af_js_web=true&af_ss_ver=2_7_3&pid=report&af_ss_ui=true&af_channel=https://hq1.appsflyer.com/">
