@@ -6,7 +6,7 @@ const ProductList = () => {
 
   return (
     <>
-      <div className="gap-10">
+      <div className="flex-col-center gap-10">
         <a href="https://connecting.onelink.me/wLqS?af_js_web=true&af_ss_ver=2_7_3&pid=report&deep_link_value=reportAnalysis&af_dp=connectingapp%3A%2F%2F&af_force_deeplink=true&af_ss_ui=true&af_channel=https://hq1.appsflyer.com/">
           링크 wLqS (URI Scheme)
         </a>
